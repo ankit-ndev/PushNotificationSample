@@ -9,8 +9,9 @@
         android:id="@+id/carousel_flipper"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:flipInterval="1600"
         android:inAnimation="@anim/slide_in_right"
         android:outAnimation="@anim/slide_out_left"
-        android:autoStart="false"/>
+        android:autoStart="true"/>
 
 </LinearLayout>

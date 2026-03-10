@@ -37,15 +37,15 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-            if (!am.canScheduleExactAlarms()) {
-                Log.w("PNotSample", "Requesting exact alarm permission");
-                Intent intent = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
-                intent.setData(Uri.parse("package:" + getPackageName()));
-                startActivity(intent);
-            }
-        }
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+//            AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+//            if (!am.canScheduleExactAlarms()) {
+//                Log.w("PNotSample", "Requesting exact alarm permission");
+//                Intent intent = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
+//                intent.setData(Uri.parse("package:" + getPackageName()));
+//                startActivity(intent);
+//            }
+//        }
         requestPermission();
         // Check if the activity was launched by a notification click
 //        handleIntent(getIntent());

@@ -17,10 +17,10 @@ public class CarouselReceiver extends BroadcastReceiver {
 
         switch (intent.getAction()) {
             case CarouselHelper.ACTION_FLIP:
-                CarouselHelper.onAlarmFired(context);
+//                CarouselHelper.onAlarmFired(context);
                 break;
             case CarouselHelper.ACTION_DISMISS:
-                CarouselHelper.cancelAlarm(context);
+//                CarouselHelper.cancelAlarm(context);
                 CarouselState.markStopped(context);
                 Log.d(TAG, "onReceive: dismissed, alarm cancelled");
                 break;
