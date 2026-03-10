@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">PNotSample</string>
+    <string name="notification_item_image">notification item image</string>
+</resources>

@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "261803390668",
+    "project_id": "paranoid-galaxy",
+    "storage_bucket": "paranoid-galaxy.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:261803390668:android:1109475c352739ff8bb469",
+        "android_client_info": {
+          "package_name": "com.example.paranoidgalaxy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBcm-l6E55tEbLYa3Dq1R2xDAiLyduAMh0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:261803390668:android:cfe7c0f6e5ae1d008bb469",
+        "android_client_info": {
+          "package_name": "com.example.pnotsample"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBcm-l6E55tEbLYa3Dq1R2xDAiLyduAMh0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
