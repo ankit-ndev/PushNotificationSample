@@ -15,15 +15,9 @@ public class CarouselReceiver extends BroadcastReceiver {
         if (intent == null || intent.getAction() == null) return;
         Log.d(TAG, "onReceive: action=" + intent.getAction());
 
-        switch (intent.getAction()) {
-            case CarouselHelper.ACTION_FLIP:
-//                CarouselHelper.onAlarmFired(context);
-                break;
-            case CarouselHelper.ACTION_DISMISS:
-//                CarouselHelper.cancelAlarm(context);
-                CarouselState.markStopped(context);
-                Log.d(TAG, "onReceive: dismissed, alarm cancelled");
-                break;
+        if (intent.getAction().equals(CarouselHelper.ACTION_DISMISS)) {
+            CarouselHelper.stop(context);
+            Log.d(TAG, "onReceive: dismissed, alarm cancelled");
         }
     }
 }

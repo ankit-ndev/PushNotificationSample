@@ -1,20 +1,17 @@
 package com.example.pnotsample.ViewFlipperSample;
 
-import android.Manifest;
-import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
-import android.os.SystemClock;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.widget.RemoteViews;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresPermission;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
@@ -22,22 +19,25 @@ import com.example.pnotsample.R;
 
 public class CarouselHelper {
 
-    private static final String TAG             = "PNotSample_Carousel";
-    private static final String CHANNEL_ID      = "carousel_channel";
-    public  static final int    NOTIFICATION_ID  = 101;
-    public  static final String ACTION_FLIP      = "com.example.pnotsample.CAROUSEL_FLIP";
-    public  static final String ACTION_DISMISS   = "com.example.pnotsample.CAROUSEL_DISMISS";
-    private static final long   INTERVAL_MS      = 600L;
+    private static final String TAG            = "PNotSample_Carousel";
+    private static final String CHANNEL_ID     = "carousel_channel";
+    public  static final int    NOTIFICATION_ID = 101;
+    public  static final String ACTION_DISMISS  = "com.example.pnotsample.CAROUSEL_DISMISS";
+    private static final long   INTERVAL_MS     = 2600L;
+
+    // Single Handler reference — required so we can cancel it cleanly
+    private static Handler  carouselHandler;
+    private static Runnable carouselRunnable;
 
     static final String[][] ITEMS = {
-            {"Breaking News",  "Markets hit an all time high today across global exchanges"},
-            {"Flash Sale",     "50% off on all electronics — today only, limited stock"   },
-            {"Weather Update", "Heavy rain expected in your city tonight, stay safe"      },
-            {"Breaking News",  "Markets hit an all time high today across global exchanges"},
-            {"Flash Sale",     "50% off on all electronics — today only, limited stock"   },
-            {"Weather Update", "Heavy rain expected in your city tonight, stay safe"      },
-            {"Breaking News",  "Markets hit an all time high today across global exchanges"},
-            {"Flash Sale",     "50% off on all electronics — today only, limited stock"   },
+            {"Pizza Sale - 40% Off", "Today only on all large pizzas"},
+            {"Burger Deal - 30% Off", "All burgers discounted till midnight"},
+            {"Buy 1 Get 1 Pizza", "Free pizza on every large order"},
+            {"Family Combo - 25% Off", "Pizza, garlic bread and drinks combo"},
+            {"Pasta Special - 20% Off", "Creamy and spicy pasta options"},
+            {"Cheese Burst - 35% Off", "Extra cheese pizzas at lower price"},
+            {"Late Night Pizza - 45% Off", "Offer valid from 11 PM to 2 AM"},
+            {"Student Offer - 50% Off", "Show student ID to claim deal"}
     };
 
     static final int[] IMAGES = {
@@ -54,36 +54,46 @@ public class CarouselHelper {
     public static void start(Context context) {
         Log.d(TAG, "start: initialising carousel");
         createChannel(context);
-        CarouselState.reset(context);
-        show(context, 0);
-//        scheduleFlip(context, 0);
+        stopFlipping();
+        show(context.getApplicationContext(), 0);
+        scheduleFlip(context.getApplicationContext(), 0);
     }
 
     public static void stop(Context context) {
-        Log.d(TAG, "stop: cancelling carousel");
-//        cancelAlarm(context);
-        CarouselState.markStopped(context);
+        Log.d(TAG, "stop: stopping carousel");
+        stopFlipping();
         NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID);
     }
 
-//    public static void onAlarmFired(Context context) {
-//        if (CarouselState.isStopped(context)) {
-//            Log.d(TAG, "onAlarmFired: carousel stopped, skipping");
-//            cancelAlarm(context);
-//            return;
-//        }
-//        int current = CarouselState.getIndex(context);
-//        int next    = (current + 1) % ITEMS.length;
-//        Log.d(TAG, "onAlarmFired: flipping from " + current + " → " + next);
-//        CarouselState.saveIndex(context, next);
-//        show(context, next);
-//        scheduleFlip(context, next);
-//    }
+    private static void scheduleFlip(Context context, int currentIndex) {
+        carouselHandler  = new Handler(Looper.getMainLooper());
+        carouselRunnable = new Runnable() {
+            int index = currentIndex;
+
+            @Override
+            public void run() {
+                index = (index + 1) % ITEMS.length;
+                Log.d(TAG, "flip: handler fired → index=" + index);
+                show(context, index);
+                carouselHandler.postDelayed(this, INTERVAL_MS);
+            }
+        };
+
+        carouselHandler.postDelayed(carouselRunnable, INTERVAL_MS);
+        Log.d(TAG, "scheduleFlip: first flip in " + INTERVAL_MS + "ms");
+    }
+
+    private static void stopFlipping() {
+        if (carouselHandler != null && carouselRunnable != null) {
+            carouselHandler.removeCallbacks(carouselRunnable);
+            Log.d(TAG, "stopFlipping: callbacks removed");
+        }
+        carouselHandler  = null;
+        carouselRunnable = null;
+    }
 
     private static void show(Context context, int index) {
-        Log.d(TAG, "show: building notification for index " + index);
-        RemoteViews views = getRemoteViews(context, index);
-        Log.d(TAG, "show: setDisplayedChild → " + index);
+        Log.d(TAG, "show: index=" + index);
 
         Intent dismissIntent = new Intent(context, CarouselReceiver.class);
         dismissIntent.setAction(ACTION_DISMISS);
@@ -92,20 +102,21 @@ public class CarouselHelper {
 
         Notification n = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setCustomBigContentView(views)
+                .setCustomBigContentView(getRemoteViews(context, index))
                 .setStyle(new NotificationCompat.DecoratedCustomViewStyle())
                 .setDeleteIntent(dismissPi)
                 .setOnlyAlertOnce(true)
-                .setPriority(NotificationCompat.PRIORITY_HIGH)   // ensures expanded by default
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .build();
 
         n.flags |= Notification.FLAG_ONLY_ALERT_ONCE;
 
         try {
             NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, n);
-            Log.d(TAG, "show: notification posted for index " + index);
+            Log.d(TAG, "show: notification posted ✓");
         } catch (SecurityException e) {
             Log.e(TAG, "show: POST_NOTIFICATIONS denied", e);
+            stopFlipping();
         }
     }
 
@@ -115,46 +126,12 @@ public class CarouselHelper {
 
         RemoteViews item = new RemoteViews(context.getPackageName(), R.layout.notification_carousel_item);
         item.setImageViewResource(R.id.item_image,  IMAGES[index]);
-        item.setTextViewText(R.id.item_title,       ITEMS[index][0] + " -> Page: " + (index + 1));
-        item.setTextViewText(R.id.item_description, ITEMS[index][1]);
+        item.setTextViewText(R.id.item_description, ITEMS[index][0] + " : " + ITEMS[index][1]);
         views.addView(R.id.carousel_flipper, item);
 
         views.setInt(R.id.carousel_flipper, "setDisplayedChild", 0);
         return views;
     }
-
-//    @RequiresPermission(Manifest.permission.SCHEDULE_EXACT_ALARM)
-//    private static void scheduleFlip(Context context, int currentIndex) {
-//        AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-//        long triggerAt  = SystemClock.elapsedRealtime() + INTERVAL_MS;
-//
-//        Intent intent = new Intent(context, CarouselReceiver.class);
-//        intent.setAction(ACTION_FLIP);
-//        PendingIntent pi = PendingIntent.getBroadcast(context, NOTIFICATION_ID, intent,
-//                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-//
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !am.canScheduleExactAlarms()) {
-//            am.setWindow(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAt, 500L, pi);
-//            Log.d(TAG, "scheduleFlip: window alarm scheduled");
-//        } else {
-//            am.setExactAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAt, pi);
-//            Log.d(TAG, "scheduleFlip: exact alarm scheduled at +" + INTERVAL_MS + "ms");
-//        }
-//    }
-//
-//    public static void cancelAlarm(Context context) {
-//        AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-//        Intent intent   = new Intent(context, CarouselReceiver.class);
-//        intent.setAction(ACTION_FLIP);
-//        PendingIntent pi = PendingIntent.getBroadcast(context, NOTIFICATION_ID, intent,
-//                PendingIntent.FLAG_NO_CREATE | PendingIntent.FLAG_IMMUTABLE);
-//        if (pi != null) {
-//            am.cancel(pi);
-//            Log.d(TAG, "cancelAlarm: alarm cancelled");
-//        } else {
-//            Log.w(TAG, "cancelAlarm: no pending intent found");
-//        }
-//    }
 
     private static void createChannel(Context context) {
         NotificationChannel ch = new NotificationChannel(
@@ -162,6 +139,6 @@ public class CarouselHelper {
         ch.enableVibration(false);
         ((NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE))
                 .createNotificationChannel(ch);
-        Log.d(TAG, "createChannel: channel created");
+        Log.d(TAG, "createChannel: done");
     }
 }

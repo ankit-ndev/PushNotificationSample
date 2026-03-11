@@ -46,8 +46,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
         CarouselHelper.stop(getApplicationContext());
         CarouselHelper.start(getApplicationContext());
-
-
 //        showPagerNotification(this, 1);
 //        startTimer(this);
     }

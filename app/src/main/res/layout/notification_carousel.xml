@@ -5,11 +5,22 @@
     android:orientation="vertical"
     android:padding="4dp">
 
+    <TextView
+        android:id="@+id/item_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/checkout_the_offers_below"
+        android:paddingBottom="2dp"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/holo_green_dark"
+        android:maxLines="1"
+        android:ellipsize="end" />
+
     <ViewFlipper
         android:id="@+id/carousel_flipper"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:flipInterval="1600"
         android:inAnimation="@anim/slide_in_right"
         android:outAnimation="@anim/slide_out_left"
         android:autoStart="true"/>
